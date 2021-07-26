@@ -66,7 +66,7 @@ namespace GetBarcodeServer
         public static string UseIP4 = "1";
         public int lstmsg_max = 100;
         public static int BarcodeList = 2;
-        public static List<string> Barcode = new List<string>();
+        public  List<string> Barcode = new List<string>();
 
         FA_Basic.WebService ws = new FA_Basic.WebService();
 
@@ -190,6 +190,7 @@ namespace GetBarcodeServer
             txtPort3.Text = Port3;
             txtIP4.Text = IP4;
             txtPort4.Text = Port4;
+            txtBarcodeList.Text = BarcodeList.ToString();
         }
 
         /// <summary>
@@ -472,81 +473,128 @@ namespace GetBarcodeServer
         private void txtSN_KeyPress(object sender, KeyPressEventArgs e)
         {
             
+
             if (e.KeyChar == 13)
             {
+
                 string input = txtSN.Text.Trim().ToUpper();
                 txtSN.Text = "";
                 if ((input != "") & Regex.IsMatch(input, "^[A-Z0-9]+$"))
                 {
 
-                    if (UseWeb == "1")
+                    if (!CheckBarcodeInBarcodeList(input ))
                     {
-                        Stopwatch sw = new Stopwatch();
-                        TimeSpan ts = new TimeSpan();
-                        sw.Start();
-                        string result = ws.ChkRoute(input, "AI");
-                        if (result.ToLower().Contains("not exist"))
+                        if (BarcodeList > 2)
                         {
-                            ShowMessage(input + " is not exist in SFCS.");
-                            RecordMsg(input + ":" + result);
-                            sw.Stop();
-                            ShowMessage("ChkRouter,UsedTime(ms):" + ts.Milliseconds);
-                            return;
+                            if ((Barcode.Count + 1) == BarcodeList)
+                                Barcode.RemoveAt(0);
                         }
-                        if (result.ToLower().Contains("already storein"))
+                        if (BarcodeList == 1 || BarcodeList == 0)
                         {
-                            ShowMessage(input + " is already SotreIn.");
-                            RecordMsg(input + ":" + result);
-                            sw.Stop();
-                            ShowMessage("ChkRouter,UsedTime(ms):" + ts.Milliseconds);
-                            return;
+                            if (Barcode.Count == 1)
+                                Barcode.RemoveAt(0);
                         }
-                    }
+                           
+                        Barcode.Add(input);
 
-                    Task.Factory.StartNew(() =>
-                    {
-                        try
+                        if (UseWeb == "1")
                         {
-                            SendMessage(chkUseIP1, IP1, Port1, input);
+                            Stopwatch sw = new Stopwatch();
+                            TimeSpan ts = new TimeSpan();
+                            sw.Start();
+                            string result = ws.ChkRoute(input, "AI");
+                            if (result.ToLower().Contains("not exist"))
+                            {
+                                ShowMessage(input + " is not exist in SFCS.");
+                                RecordMsg(input + ":" + result);
+                                sw.Stop();
+                                ShowMessage("ChkRouter,UsedTime(ms):" + ts.Milliseconds);
+                                return;
+                            }
+                            if (result.ToLower().Contains("already storein"))
+                            {
+                                ShowMessage(input + " is already SotreIn.");
+                                RecordMsg(input + ":" + result);
+                                sw.Stop();
+                                ShowMessage("ChkRouter,UsedTime(ms):" + ts.Milliseconds);
+                                return;
+                            }
                         }
-                        catch (Exception)
+
+                        Task.Factory.StartNew(() =>
                         {
-                        }
-                    });
-                    Task.Factory.StartNew(() =>
-                    {
-                        try
+                            try
+                            {
+                                SendMessage(chkUseIP1, IP1, Port1, input);
+                            }
+                            catch (Exception)
+                            {
+                            }
+                        });
+                        Task.Factory.StartNew(() =>
                         {
-                            SendMessage(chkUseIP2, IP2, Port2, input);
-                        }
-                        catch (Exception)
+                            try
+                            {
+                                SendMessage(chkUseIP2, IP2, Port2, input);
+                            }
+                            catch (Exception)
+                            {
+                            }
+                        });
+                        Task.Factory.StartNew(() =>
                         {
-                        }
-                    });
-                    Task.Factory.StartNew(() =>
-                    {
-                        try
+                            try
+                            {
+                                SendMessage(chkUseIP3, IP3, Port3, input);
+                            }
+                            catch (Exception)
+                            {
+                            }
+                        });
+                        Task.Factory.StartNew(() =>
                         {
-                            SendMessage(chkUseIP3, IP3, Port3, input);
-                        }
-                        catch (Exception)
-                        {
-                        }
-                    });
-                    Task.Factory.StartNew(() =>
-                    {
-                        try
-                        {
-                            SendMessage(chkUseIP4, IP4, Port4, input);
-                        }
-                        catch (Exception)
-                        {
-                        }
-                    });
-                    this.ShowMessage("Barcode: " + input);
+                            try
+                            {
+                                SendMessage(chkUseIP4, IP4, Port4, input);
+                            }
+                            catch (Exception)
+                            {
+                            }
+                        });
+                        this.ShowMessage("Barcode: " + input);
+                    }
                 }
             }
         }
+
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="input"></param>
+        /// <returns></returns>
+        private  bool CheckBarcodeInBarcodeList(string input)
+        {
+            if (BarcodeList == 1 || BarcodeList == 0)
+                return false;
+
+            if (Barcode.Contains(input))
+            {
+                ShowMessage("在當前" + (Barcode.Count + 1) + "個條碼内有重複條碼.");
+                RecordMsg ("在當前" + (Barcode.Count + 1) + "個條碼内有重複條碼.");
+                ShowMessage ("系統設置在" + BarcodeList + "個條碼内不能有重複條碼.");
+                RecordMsg("系統設置在" + BarcodeList + "個條碼内不能用重複.");    
+         
+               return true;
+            }
+           else
+                return false;
+        }
+
+
+
+
 
         private void txtIP1_TextChanged(object sender, EventArgs e)
         {
@@ -695,7 +743,7 @@ namespace GetBarcodeServer
             try
             {
                 BarcodeList = Convert.ToInt16(txtBarcodeList.Text.Trim());
-
+                IniFile.IniWriteValue(IniSection.SysConfig.ToString(), "BarcodeList", BarcodeList.ToString(), IniFilePath);
             }
             catch (Exception)
             {
