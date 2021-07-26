@@ -484,7 +484,7 @@ namespace GetBarcodeServer
 
                     if (!CheckBarcodeInBarcodeList(input ))
                     {
-                        if (BarcodeList > 2)
+                        if (BarcodeList > 1)
                         {
                             if ((Barcode.Count + 1) == BarcodeList)
                                 Barcode.RemoveAt(0);
