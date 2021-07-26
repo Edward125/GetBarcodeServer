@@ -1,0 +1,9 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="GetBarcodeServer.Properties" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="GetBarcodeServer_FA_Basic_WebService" Type="(Web Service URL)" Scope="Application">
+      <Value Profile="(Default)">http://10.62.201.121/Basic.WebService/WebService.asmx</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
