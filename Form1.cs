@@ -65,6 +65,8 @@ namespace GetBarcodeServer
         public static string Port4 = "";
         public static string UseIP4 = "1";
         public int lstmsg_max = 100;
+        public static int BarcodeList = 2;
+        public static List<string> Barcode = new List<string>();
 
         FA_Basic.WebService ws = new FA_Basic.WebService();
 
@@ -127,6 +129,8 @@ namespace GetBarcodeServer
             IniFile.IniWriteValue(IniSection.SysConfig.ToString(), "IP4", IP4, inifilepath);
             IniFile.IniWriteValue(IniSection.SysConfig.ToString(), "Port4", Port4, inifilepath);
             IniFile.IniWriteValue(IniSection.SysConfig.ToString(), "UseIP4", UseIP4, inifilepath);
+            IniFile.IniWriteValue(IniSection.SysConfig.ToString(), "BarcodeList", BarcodeList.ToString(), inifilepath);
+
 
 
         }
@@ -153,6 +157,16 @@ namespace GetBarcodeServer
             IP4 = IniFile.IniReadValue(IniSection.SysConfig.ToString(), "IP4", inifilepath);
             Port4 = IniFile.IniReadValue(IniSection.SysConfig.ToString(), "Port4", inifilepath);
             UseIP4 = IniFile.IniReadValue(IniSection.SysConfig.ToString(), "UseIP4", inifilepath);
+            try
+            {
+                BarcodeList = Convert.ToInt16(IniFile.IniReadValue(IniSection.SysConfig.ToString(), "BarcodeList", inifilepath));
+            }
+            catch (Exception)
+            {
+
+                BarcodeList = 2;
+                
+            }
 
 
         }
@@ -605,6 +619,7 @@ namespace GetBarcodeServer
                 chkUseIP3.Enabled = false;
                 chkUseIP4.Enabled = false;
                 txtSN.Enabled = true;
+                txtBarcodeList.ReadOnly = true;
             }));
            
 
@@ -632,6 +647,7 @@ namespace GetBarcodeServer
             chkUseIP3.Enabled = true;
             chkUseIP4.Enabled = true;
             txtSN.Enabled = false;
+            txtBarcodeList.ReadOnly = false;
         }
 
         private void btnStop_Click(object sender, EventArgs e)
@@ -664,6 +680,73 @@ namespace GetBarcodeServer
             
         }
 
+        private void btnClearBarcode_Click(object sender, EventArgs e)
+        {
+            if (Barcode.Count > 0)
+            {
+                ShowMessage("當前系統條碼" + Barcode.Count + "個,手動點擊清除");
+                Barcode.Clear();
+            }
+           
+        }
+
+        private void txtBarcodeList_TextChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                BarcodeList = Convert.ToInt16(txtBarcodeList.Text.Trim());
+
+            }
+            catch (Exception)
+            {
+
+                BarcodeList = 2;
+                txtBarcodeList.Text = "2";
+                txtBarcodeList.Focus();
+                txtBarcodeList.SelectAll();
+               
+            }
+            finally
+            {
+                IniFile.IniWriteValue(IniSection.SysConfig.ToString(), "BarcodeList", BarcodeList.ToString(), IniFilePath);
+            }
+            
+        }
+
+        private void txtBarcodeList_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            LimitInputOnlyNumber(sender, e);
+        }
+
+        private void LimitInputOnlyNumber( object sender ,KeyPressEventArgs e)
+        {
+            if (e.KeyChar == 0x20) e.KeyChar = (char)0;  //禁止空格键
+            if ((e.KeyChar == 0x2D) && (((TextBox)sender).Text.Length == 0)) return;   //处理负数
+            if (e.KeyChar != 8 && !Char.IsDigit(e.KeyChar))
+            {
+                e.Handled = true;
+            }
+        }
+
+        private void txtPort1_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            LimitInputOnlyNumber(sender, e);
+        }
+
+        private void txtPort2_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            LimitInputOnlyNumber(sender, e);
+        }
+
+        private void txtPort3_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            LimitInputOnlyNumber(sender, e);
+        }
+
+        private void txtPort4_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            LimitInputOnlyNumber(sender, e);
+        }
 
 
     }
